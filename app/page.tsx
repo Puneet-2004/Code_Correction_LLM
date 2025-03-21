@@ -37,7 +37,7 @@ export default function Home() {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Error fetching AI response:", error);
-      const errorMessage: Message = { sender: "ai", text: "Sorry, something went wrong." };
+      const errorMessage: Message = { sender: "ai", text: "insufficient_quota" };//change to {text: error.message || "Sorry, something went wrong."} after getting proper api key
       setMessages((prev) => [...prev, errorMessage]);
     }
 
@@ -63,6 +63,8 @@ export default function Home() {
       {/* Chat window */}
       <div
         style={{
+          display: "flex",
+          flexDirection: "column",
           border: "2px solid #0070f3",
           borderRadius: "8px",
           padding: "1rem",
