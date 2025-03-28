@@ -1,27 +1,34 @@
 import { NextResponse } from 'next/server';
-import { OpenAI } from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Ensure your API key is set in .env.local
-});
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const { query } = await req.json();
     if (!query) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    // Call the OpenAI API using GPT-3.5-turbo
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: query }],
+
+    const response = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: query }]
+        }]
+      }),
     });
 
-    const answer = completion.choices[0].message?.content;
+    const data = await response.json();
+    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+
     return NextResponse.json({ answer });
   } catch (error) {
     console.error('Error processing API request:', error);
-    return NextResponse.json({ error: 'insufficient_quota' }, { status: 500 });
+    return NextResponse.json({ error: 'internal_server_error' }, { status: 500 });
   }
 }
